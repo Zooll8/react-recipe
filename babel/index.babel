@@ -1,0 +1,207 @@
+var Panel = ReactBootstrap.Panel;
+var PanelGroup = ReactBootstrap.PanelGroup;
+var Modal = ReactBootstrap.Modal;
+var Button = ReactBootstrap.Button;
+if (!localStorage.hasOwnProperty("_zooll_recipes")) {
+   localStorage.setItem("_zooll_recipes", JSON.stringify([{
+      name: "Spaghetti",
+      ingridients: ["Water", "Powder", "Italian Mother"]
+   }, {
+      name: "Pizza",
+      ingridients: ["Powder", "Water", "Frozen pizza", "Microwave"]
+   }, {
+      name: "Cake",
+      ingridients: ["Water", "Powder", "Eggs","Sugar","Sounds legit, right?"]
+   }, {
+      name: "Soup",
+      ingridients: ["Water", "Meat", "Carrot","Potato","Little bit tomato", "Pepper"]
+   }, ]))
+}
+
+function Welcome(props) {
+   return <div className="row text-center">Recipes by <a href="https://www.github.com/zooll8" target="_blank">Zooll</a><br/><br/></div>
+}
+class RecipeMain extends React.Component {
+   constructor(props) {
+      super(props);
+      this.state = {
+         recipes: JSON.parse(localStorage.getItem("_zooll_recipes")),
+         showadd: false,
+         showedit: false,
+         currentedit: {
+            name: "",
+            ingridients: [""]
+         },
+         currentnum: 0
+      };
+      this.openadd = this.openadd.bind(this);
+      this.closeadd = this.closeadd.bind(this);
+      this.openedit = this.openedit.bind(this);
+      this.closeedit = this.closeedit.bind(this)
+   }
+   //just refreshes array at the front
+   refreshlist() {
+      this.setState({
+         recipes: JSON.parse(localStorage.getItem("_zooll_recipes"))
+      });
+   }
+   //Cleare whole localStorage array and all recipes
+   clearAll() {
+      localStorage._zooll_recipes = JSON.stringify([]);
+      this.refreshlist();
+   }
+   //Disables clear all function
+   ClearDisable() {
+      if (this.state.recipes.length > 0) {
+         return false
+      } else {
+         return true
+      }
+   }
+   //Close add modal
+   openadd() {
+      this.setState({
+         showadd: true
+      });
+   }
+   //Close add modal
+   closeadd() {
+      this.setState({
+         showadd: false
+      });
+   }
+   //Open edit modal
+   openedit() {
+      this.setState({
+         showedit: true
+      });
+   }
+   //Close edit modal
+   closeedit() {
+      this.setState({
+         showedit: false
+      });
+   }
+   //This function save new recipe at the same place where you clicked edit
+   save() {
+      const newrecipename = document.getElementById("editname").value;
+      const newrecipebody = (document.getElementById("editbody").value).split(" ");
+      let localorecipes = this.state.recipes;
+      const object = {
+         name: newrecipename,
+         ingridients: newrecipebody
+      }
+      localorecipes[this.state.currentnum] = object;
+      localStorage._zooll_recipes = JSON.stringify(localorecipes);
+      this.refreshlist();
+      this.closeedit();
+   }
+   //This runs when you click delete on one recipe
+   deleteRecipe(i) {
+      const localorecipes = this.state.recipes;
+      localorecipes.splice(i, 1);
+      localStorage._zooll_recipes = JSON.stringify(localorecipes);
+      this.refreshlist();
+   }
+   //Submit form of Add Recipe Modal
+   submit() {
+      const newrecipename = document.getElementById("recipename").value;
+      const newrecipebody = (document.getElementById("recipebody").value).split(" ");
+      const localorecipes = this.state.recipes;
+      const object = {
+         name: newrecipename,
+         ingridients: newrecipebody
+      }
+      localorecipes.push(object);
+      localStorage._zooll_recipes = JSON.stringify(localorecipes);
+      this.refreshlist();
+      this.closeadd();
+   }
+   //Runs edit recipe Modal
+   editRecipe(i) {
+      const localorecipe = this.state.recipes[i]
+      this.setState({
+         currentedit: localorecipe,
+         currentnum: i
+      });
+      this.openedit();
+   }
+   render() {
+      //This is function where it renders whole body part of container
+      const persons = this.state.recipes.map((item, i) => {
+         const elementi = item.ingridients.map((el, x) => {
+            return <p key={x}>{el}</p>
+         })
+         return <Panel className = "panel-info"
+         header = {
+            "" + item.name
+         }
+         eventKey = {
+            "" + i
+         } > {
+            elementi
+         }
+         <br/> < button className = "btn btn-info"
+         onClick = {
+            () =>
+            this.editRecipe(i)
+         } > Edit < /button>  <button className="btn btn-default" onClick={()=>this.deleteRecipe(i)}>Delete</button > < /Panel>
+      });
+      return (
+         <div id="main">
+            <div className="container">
+               <Welcome />
+            <div className="row">
+               <div className="col-sm-3"></div>
+               <div className="col-sm-6 well">
+                  <PanelGroup defaultActiveKey="" accordion>{persons}</PanelGroup>
+                  <button className="btn btn-danger" onClick={()=>this.clearAll()} disabled={this.ClearDisable()}>Clear all</button>
+               </div>
+               <div className="col-sm-3"></div>
+            </div>
+            <div className="row text-center">
+            <button onClick={this.openadd} className="btn btn-success" id="add">Add recipe</button>
+         </div>
+            </div>
+            <Modal show={this.state.showadd} onHide={this.closeadd}>
+               <Modal.Header closeButton>
+                  <Modal.Title>New Recipe Form</Modal.Title>
+               </Modal.Header>
+               <Modal.Body>
+                  <div className="form-group">
+   <label for="recipename">Write your Recipe Title:</label>
+   <textarea className="form-control" rows="1" id="recipename" placeholder="Write super cool name for your super cool Recipe! ^_^"></textarea>
+</div><div className="form-group">
+  <label for="recipebody">Write your Recipe Ingridients separated by spaces:</label>
+  <textarea className="form-control" rows="3" id="recipebody" placeholder="Write all ingridients separated by spaces!"></textarea>
+</div>
+               </Modal.Body>
+               <Modal.Footer>
+                  <Button className="btn-primary" onClick={()=>this.submit()}>Submit</Button>
+                  <Button className="btn-default" onClick={this.closeadd}>Close</Button>
+               </Modal.Footer>
+            </Modal>
+            <Modal show={this.state.showedit} onHide={this.closeedit}>
+               <Modal.Header closeButton>
+                  <Modal.Title>Recipe Change Form</Modal.Title>
+               </Modal.Header>
+               <Modal.Body>
+                  <div className="form-group">
+   <label for="editname">Rewrite your Recipe Title here:</label>
+   <textarea className="form-control" rows="1" id="editname" onChange={()=>this.whatever()} value={this.state.currentedit.name}></textarea>
+</div><div className="form-group">
+  <label for="editbody">Change your Recipe Ingridients separated by spaces:</label>
+  <textarea className="form-control" rows="3" id="editbody" onChange={()=>this.whatever()}value={(this.state.currentedit.ingridients).join(" ")}></textarea>
+</div>
+               </Modal.Body>
+               <Modal.Footer>
+                  <Button className="btn-primary" onClick={()=>this.save()}>Save</Button>
+                  <Button className="btn-default" onClick={this.closeedit}>Close</Button>
+               </Modal.Footer>
+            </Modal>
+         </div>
+      )
+
+   }
+}
+ReactDOM.render(<RecipeMain/>, document.getElementById("root"));

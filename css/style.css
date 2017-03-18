@@ -1,0 +1,11 @@
+@import url("https://fonts.googleapis.com/css?family=Taviraj");
+body {
+  background-image: url(http://i.imgur.com/isDByYq.png);
+  margin: 25px;
+  font-family: "Taviraj", serif;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: none;
+}
